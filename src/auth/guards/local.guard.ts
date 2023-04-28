@@ -3,4 +3,4 @@ import { AuthGuard } from '@nestjs/passport';
 
 //взяли прям с документации для локальной атворизации
 @Injectable()
-export class LocalAuthGuard extends AuthGuard('jwt') {}
+export class LocalAuthGuard extends AuthGuard('local') {}

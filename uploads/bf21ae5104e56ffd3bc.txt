@@ -1,0 +1,21 @@
+ findAll(userId: number, fileType: FileType) {
+    // return this.repository.find(); //так мы получи доступ ко всем сущностям в базе данных
+
+    const qb = this.repository.createQueryBuilder('file'); //ищем файлы в базе
+    qb.where('file.userId=:userId', { userId }); //тут показываем что ищем именно файл конкретного юзера
+
+    if (fileType === FileType.PHOTOS) {
+      //то будем возвращать файлы как image
+      qb.andWhere('file.mimetype ILike :type', { type: '%image%' });
+    }
+
+    if (fileType === FileType.TRASH) {
+      //тут будем возвращать только помеяченные как удаленные
+      qb.withDeleted().andWhere('file.deletedAt IS NOT NUll');
+    }
+
+    return qb.getMany(); //тут возвращаем все записи
+  }
+
+
+

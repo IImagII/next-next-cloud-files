@@ -7,6 +7,8 @@ import {
   MaxFileSizeValidator,
   Get,
   UseGuards,
+  Query,
+  Delete,
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 
@@ -15,6 +17,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { fileStorage } from './storage';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { UserId } from 'src/decorators/user-id.decorator';
+import { FileType } from './entities/file-type.enum';
 
 @Controller('files')
 @ApiTags('files') //групируем запросы по тегу files
@@ -25,10 +29,15 @@ export class FilesController {
 
   //метод для получения всех файлов
   @Get()
-  findAll() {
-    return this.filesService.findAll(); //тут мы обратились к filesService и запрашиваем унего все что есть
+  findAll(
+    /**   иы показываем что этот запарос будет возвращать файлы 
+    только определенного пользователя благодаря нашему декоратору и определенного типа*/
+    @UserId() userId: number,
+    //@Query- декоратор для того чтобы вытаскивать тип из параметра
+    @Query('type') fileType: FileType,
+  ) {
+    return this.filesService.findAll(userId, fileType); //тут мы обратились к filesService и запрашиваем унего все что есть
   }
-
   //это метод для добавления файлов
   @Post()
   @UseInterceptors(
@@ -60,7 +69,16 @@ export class FilesController {
       }),
     )
     file: Express.Multer.File,
+    @UserId() userId: number, //тут нашим декоратором мы получаем id пользователя и передаем его ниже для сохранения файла с єтим id
   ) {
-    return file;
+    //тут мы использукем сам метод для создания который мы создали в service create
+    //мы отправляем файл в базу данных с нужными нам данными
+    return this.filesService.create(file, userId);
+  }
+
+  //делаем запрос на удаление файлов из баззы данных
+  @Delete()
+  remove(@UserId() userId: number, @Query('id') ids: string) {
+    return this.filesService.remove(userId, ids);
   }
 }
